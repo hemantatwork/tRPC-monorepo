@@ -3,23 +3,42 @@ import * as React from "react";
 import { trpc } from "./trpc";
 
 const App = () => {
-  const fetchUser = async () => {
-    const createUser = await trpc.user.createUser.mutate({
-      name: "Free Guy",
-    });
-    console.log("createUser =>", createUser);
-    const user = await trpc.user.getUserById.query("0");
-    const users = await trpc.user.getUsers.query();
+  const [name, setName] = React.useState("");
 
-    console.log("user =>", user);
-    console.log("users =>", users);
+  const { data, isLoading, refetch } = trpc.user.getUsers.useQuery();
+
+  const mutation = trpc.user.createUser.useMutation({
+    onSuccess: () => refetch(),
+  });
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setName(event.target.value);
   };
 
-  React.useEffect(() => {
-    fetchUser();
-  }, []);
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    setName("");
+    mutation.mutate({ name });
+    event.preventDefault();
+  };
 
-  return <></>;
+  if (isLoading) return <span>Loading ...</span>;
+
+  return (
+    <div>
+      <ul>
+        {(data ?? []).map((user) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
+
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="name">Name:</label>
+        <input id="name" type="text" value={name} onChange={handleChange} />
+
+        <button type="submit">Create</button>
+      </form>
+    </div>
+  );
 };
 
 export default App;
