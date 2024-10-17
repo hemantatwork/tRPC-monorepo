@@ -27,7 +27,7 @@ export const userRouter = router({
       const { input } = req;
 
       const user: User = {
-        id: `${Math.random()}`,
+        id: users.length.toString(),
         name: input.name,
       };
 
